@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A student learning guide to Odysseus, the Trojan War, and Homer's Odyssey."
+    />
+    <title>Odysseus: A Guided Journey</title>
+    <script src="./config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      (() => {
+        const param = new URLSearchParams(window.location.search).get("scoutTheme");
+        const theme =
+          param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+        --cp-bg: #f7f4ef;
+        --cp-bg-elevated: #fcfbf8;
+        --cp-surface: #ffffff;
+        --cp-surface-soft: #f5f5f5;
+        --cp-border: #dedede;
+        --cp-border-strong: #919191;
+        --cp-text: #242424;
+        --cp-text-muted: #5c5c5c;
+        --cp-text-soft: #6f6f6f;
+        --cp-accent: #b11f4b;
+        --cp-accent-hover: #9a1a41;
+        --cp-accent-soft: rgba(177, 31, 75, 0.08);
+        --cp-accent-fg: #ffffff;
+        --cp-success: #16a34a;
+        --cp-danger: #dc2626;
+        --cp-warning: #f59e0b;
+        --cp-link: #0078d4;
+        --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+        --cp-overlay: rgba(255, 255, 255, 0.8);
+        --cp-panel: rgba(255, 255, 255, 0.86);
+        --cp-panel-strong: rgba(255, 255, 255, 0.96);
+        --cp-sheen: rgba(255, 255, 255, 0.55);
+        --cp-highlight: rgba(177, 31, 75, 0.12);
+      }
+      html[data-theme="dark"] {
+        color-scheme: dark;
+        --cp-bg: #3d3b3a;
+        --cp-bg-elevated: #343231;
+        --cp-surface: #292929;
+        --cp-surface-soft: #2e2e2e;
+        --cp-border: #474747;
+        --cp-border-strong: #5f5f5f;
+        --cp-text: #dedede;
+        --cp-text-muted: #919191;
+        --cp-text-soft: #b0b0b0;
+        --cp-accent: #fd8ea1;
+        --cp-accent-hover: #fb7b91;
+        --cp-accent-soft: rgba(253, 142, 161, 0.14);
+        --cp-accent-fg: #1a1a1a;
+        --cp-success: #4ade80;
+        --cp-danger: #f87171;
+        --cp-warning: #fbbf24;
+        --cp-link: #4da6ff;
+        --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+        --cp-overlay: rgba(41, 41, 41, 0.88);
+        --cp-panel: rgba(41, 41, 41, 0.72);
+        --cp-panel-strong: rgba(41, 41, 41, 0.96);
+        --cp-sheen: rgba(255, 255, 255, 0.04);
+        --cp-highlight: rgba(253, 142, 161, 0.12);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        min-width: 320px;
+        background: var(--cp-bg);
+        color: var(--cp-text);
+        font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      button, input { font: inherit; }
+      button { cursor: pointer; }
+      .shell { max-width: 1180px; margin: 0 auto; padding: 0 24px 56px; }
+      header {
+        display: flex; align-items: center; justify-content: space-between; gap: 20px;
+        padding: 20px 0; border-bottom: 1px solid var(--cp-border);
+      }
+      .brand { display: flex; align-items: center; gap: 12px; font-weight: 750; letter-spacing: .01em; }
+      .brand-mark {
+        width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px;
+        color: var(--cp-accent-fg); background: var(--cp-link); font-family: Georgia, serif; font-size: 24px;
+      }
+      .progress-wrap { display: flex; align-items: center; gap: 12px; color: var(--cp-text-muted); font-size: 14px; }
+      .progress-track { width: 130px; height: 8px; background: var(--cp-surface-soft); border-radius: 99px; overflow: hidden; border: 1px solid var(--cp-border); }
+      .progress-bar { height: 100%; width: 0; background: var(--cp-link); }
+      .theme-toggle, .icon-btn {
+        border: 1px solid var(--cp-border); background: var(--cp-surface); color: var(--cp-text);
+        padding: 9px 12px; border-radius: 10px;
+      }
+      .hero {
+        display: grid; grid-template-columns: 1.25fr .75fr; gap: 28px; padding: 56px 0 40px;
+        align-items: center;
+      }
+      .eyebrow { color: var(--cp-link); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; }
+      h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(40px, 6vw, 70px); line-height: 1.02; margin: 12px 0 18px; letter-spacing: -.04em; }
+      .hero p { color: var(--cp-text-muted); font-size: 18px; line-height: 1.65; max-width: 680px; margin: 0; }
+      .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+      .primary-btn, .secondary-btn {
+        border-radius: 10px; padding: 12px 16px; border: 1px solid var(--cp-border);
+        font-weight: 700; transition: transform .16s ease, background .16s ease;
+      }
+      .primary-btn { color: var(--cp-accent-fg); border-color: var(--cp-link); background: var(--cp-link); }
+      .primary-btn:hover { background: var(--cp-link); transform: translateY(-1px); }
+      .secondary-btn { background: var(--cp-surface); color: var(--cp-text); }
+      .secondary-btn:hover { background: var(--cp-surface-soft); }
+      .hero-card {
+        background: var(--cp-surface); border: 1px solid var(--cp-border); border-radius: 16px;
+        padding: 24px; box-shadow: var(--cp-shadow); position: relative; overflow: hidden;
+      }
+      .hero-card::before {
+        content: ""; position: absolute; width: 160px; height: 88px; right: 0; bottom: 0;
+        background: repeating-linear-gradient(0deg, var(--cp-link) 0 9px, var(--cp-surface) 9px 18px); opacity: .16;
+      }
+      .hero-card::after {
+        content: ""; position: absolute; width: 210px; height: 210px; border: 1px solid var(--cp-border);
+        border-radius: 50%; right: -70px; top: -80px;
+      }
+      .hero-card > * { position: relative; z-index: 1; }
+      .hero-card h2 { font-family: Georgia, serif; margin: 4px 0 18px; font-size: 25px; max-width: 195px; }
+      .helmet { color: var(--cp-link); width: 90px; position: absolute; top: 16px; right: 16px; z-index: 2; }
+      .helmet path { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 7; }
+      .stat-list { display: grid; gap: 12px; position: relative; }
+      .stat { display: grid; grid-template-columns: 42px 1fr; gap: 10px; align-items: start; border-top: 1px solid var(--cp-border); padding-top: 12px; }
+      .stat strong { display: block; font-size: 14px; }
+      .stat span { color: var(--cp-text-muted); font-size: 13px; line-height: 1.4; }
+      .stat-icon { color: var(--cp-link); font-size: 22px; text-align: center; }
+      .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin: 32px 0 18px; }
+      .section-heading h2 { margin: 0; font-family: Georgia, serif; font-size: 30px; letter-spacing: -.02em; }
+      .section-heading p { margin: 0; color: var(--cp-text-muted); max-width: 620px; line-height: 1.5; }
+      .journey {
+        display: grid; grid-template-columns: 260px 1fr; gap: 20px; align-items: start;
+      }
+      .stops {
+        display: grid; gap: 8px; padding: 10px; background: var(--cp-surface); border: 1px solid var(--cp-border); border-radius: 16px;
+      }
+      .stop {
+        width: 100%; text-align: left; display: grid; grid-template-columns: 30px 1fr; gap: 10px; padding: 12px;
+        border: 1px solid transparent; background: transparent; color: var(--cp-text); border-radius: 10px;
+      }
+      .stop:hover { background: var(--cp-surface-soft); }
+      .stop.active { background: var(--cp-surface-soft); border-color: var(--cp-link); }
+      .stop.done .stop-num { background: var(--cp-success); color: var(--cp-accent-fg); border-color: var(--cp-success); }
+      .stop-num { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--cp-border-strong); font-size: 12px; font-weight: 700; }
+      .stop-label { font-weight: 700; font-size: 14px; }
+      .lesson {
+        min-height: 446px; background: var(--cp-surface); border: 1px solid var(--cp-border); border-radius: 16px;
+        padding: clamp(24px, 4vw, 44px); position: relative; overflow: hidden;
+      }
+      .lesson::before { content: "◈"; color: var(--cp-link); opacity: .12; font-size: 220px; line-height: .8; position: absolute; right: -25px; bottom: -35px; font-family: Georgia, serif; }
+      .lesson-content { position: relative; max-width: 650px; }
+      .chapter-line { color: var(--cp-link); font-weight: 800; font-size: 12px; letter-spacing: .11em; text-transform: uppercase; }
+      .lesson h3 { font-family: Georgia, serif; font-size: clamp(30px, 4vw, 44px); margin: 10px 0 14px; letter-spacing: -.03em; }
+      .lesson p { color: var(--cp-text-muted); line-height: 1.65; font-size: 16px; margin: 0 0 16px; }
+      .key-idea { border: 1px solid var(--cp-link); background: var(--cp-surface-soft); padding: 13px 16px; border-radius: 10px; margin: 22px 0; line-height: 1.5; }
+      .lesson-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+      .tag { border: 1px solid var(--cp-border); padding: 6px 9px; border-radius: 99px; color: var(--cp-text-muted); background: var(--cp-surface); font-size: 12px; }
+      .lesson-footer { margin-top: 28px; display: flex; gap: 12px; align-items: center; }
+      .lesson-counter { color: var(--cp-text-muted); font-size: 13px; margin-left: auto; }
+      .timeline { margin-top: 46px; padding: 28px; background: var(--cp-bg-elevated); border: 1px solid var(--cp-border); border-radius: 16px; }
+      .timeline-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-top: 24px; }
+      .era { padding: 0 16px 0 18px; border-left: 1px solid var(--cp-border-strong); min-height: 150px; position: relative; }
+      .era:first-child { border-left: none; padding-left: 0; }
+      .era::before { content: ""; width: 10px; height: 10px; background: var(--cp-link); border-radius: 50%; position: absolute; top: -5px; left: -5px; }
+      .era:first-child::before { left: -5px; }
+      .era span { font-size: 12px; color: var(--cp-link); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+      .era h4 { font-family: Georgia, serif; margin: 10px 0 8px; font-size: 20px; }
+      .era p { color: var(--cp-text-muted); margin: 0; font-size: 13px; line-height: 1.5; }
+      .quiz-layout { display: grid; grid-template-columns: 1fr .85fr; gap: 20px; margin-top: 46px; }
+      .quiz-card, .study-card { background: var(--cp-surface); border: 1px solid var(--cp-border); border-radius: 16px; padding: 26px; }
+      .quiz-card h2, .study-card h2 { font-family: Georgia, serif; margin: 6px 0 10px; font-size: 28px; }
+      .quiz-question { font-size: 18px; font-weight: 700; line-height: 1.45; margin: 24px 0 16px; }
+      .answers { display: grid; gap: 10px; }
+      .auth-gate, .quiz-form, .result-card { margin-top: 20px; }
+      .auth-gate { border-top: 1px solid var(--cp-border); padding-top: 20px; }
+      .auth-gate p, .quiz-note, .result-card p { color: var(--cp-text-muted); line-height: 1.5; }
+      .auth-form { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+      .field-label { display: block; color: var(--cp-text); font-size: 14px; font-weight: 700; margin: 20px 0 8px; }
+      .text-input, .text-response {
+        width: 100%; border: 1px solid var(--cp-border-strong); border-radius: 10px; padding: 11px 12px;
+        color: var(--cp-text); background: var(--cp-surface); font: inherit;
+      }
+      .auth-form .text-input { flex: 1 1 220px; }
+      .text-response { min-height: 124px; resize: vertical; line-height: 1.5; }
+      .question-status { color: var(--cp-link); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+      .quiz-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+      .answer.selected { border-color: var(--cp-link); background: var(--cp-surface-soft); }
+      .result-card { border: 1px solid var(--cp-success); background: var(--cp-surface-soft); border-radius: 10px; padding: 18px; }
+      .result-card strong { font-family: Georgia, serif; font-size: 24px; }
+      .private-note { color: var(--cp-text-soft); font-size: 12px; margin-top: 12px; }
+      .answer {
+        text-align: left; padding: 12px 14px; background: var(--cp-surface); border: 1px solid var(--cp-border); color: var(--cp-text); border-radius: 10px;
+      }
+      .answer:hover:not(:disabled) { border-color: var(--cp-link); background: var(--cp-surface-soft); }
+      .answer.correct { border-color: var(--cp-success); background: var(--cp-highlight); }
+      .answer.incorrect { border-color: var(--cp-danger); background: var(--cp-surface-soft); }
+      .feedback { min-height: 25px; color: var(--cp-text-muted); margin: 14px 0 0; font-size: 14px; }
+      .study-list { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 13px; }
+      .study-list li { display: flex; gap: 10px; color: var(--cp-text-muted); line-height: 1.45; font-size: 14px; }
+      .study-list b { color: var(--cp-text); }
+      .dot { width: 8px; height: 8px; flex: 0 0 auto; margin-top: 6px; border-radius: 50%; background: var(--cp-link); }
+      footer { text-align: center; color: var(--cp-text-soft); font-size: 13px; padding: 36px 0 0; }
+      @media (max-width: 860px) {
+        .hero, .journey, .quiz-layout { grid-template-columns: 1fr; }
+        .hero { padding-top: 40px; }
+        .stops { grid-template-columns: repeat(2, 1fr); }
+        .timeline-grid { grid-template-columns: 1fr; gap: 18px; }
+        .era, .era:first-child { border-left: 1px solid var(--cp-border-strong); padding-left: 18px; min-height: auto; }
+        .era::before, .era:first-child::before { left: -5px; }
+      }
+      @media (max-width: 560px) {
+        .shell { padding: 0 16px 36px; }
+        .progress-wrap span { display: none; }
+        .progress-track { width: 86px; }
+        .stops { grid-template-columns: 1fr; }
+        .lesson-footer { flex-wrap: wrap; }
+        .lesson-counter { margin-left: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <div class="brand"><div class="brand-mark">Ω</div><span>Odysseus: A Guided Journey</span></div>
+        <div class="progress-wrap">
+          <span id="progress-label">0 of 6 chapters explored</span>
+          <div class="progress-track" aria-label="Learning progress"><div class="progress-bar" id="progress-bar"></div></div>
+          <button class="theme-toggle" id="theme-toggle" aria-label="Change color theme">Theme</button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Ancient Greece · Literature · Myth</div>
+          <h1>Find your way home with Odysseus.</h1>
+          <p>Travel from the fall of Troy to Ithaca with a learning guide designed for curious students. Explore the historical world behind the myth, meet its memorable characters, and uncover why this ancient story still matters.</p>
+          <div class="hero-actions">
+            <button class="primary-btn" id="start-journey">Begin the journey</button>
+            <a class="secondary-btn" href="#timeline" style="text-decoration:none; display:inline-block;">View the big picture</a>
+          </div>
+        </div>
+        <aside class="hero-card">
+          <svg class="helmet" viewBox="0 0 180 150" aria-label="Decorative stylized Greek helmet" role="img">
+            <path d="M29 116c8-50 23-82 58-94 23-8 47 2 60 24l12-7-6 24 16 8-20 8c1 17-5 32-18 43-14 11-31 15-49 11l-15-4-18 7 10-20z" />
+            <path d="M48 94c22 8 45 8 69-2M61 64c14-7 31-7 46 0M93 40v58M118 113l-10 23M65 113l-18 17" />
+          </svg>
+          <div class="eyebrow">Your travel pack</div>
+          <h2>Three things to remember</h2>
+          <div class="stat-list">
+            <div class="stat"><div class="stat-icon">⌁</div><div><strong>Epic poem</strong><span><em>The Odyssey</em> is traditionally attributed to Homer and was likely shaped from oral storytelling.</span></div></div>
+            <div class="stat"><div class="stat-icon">⚓</div><div><strong>A long return</strong><span>Odysseus spends ten years trying to return home after the Trojan War.</span></div></div>
+            <div class="stat"><div class="stat-icon">✦</div><div><strong>More than monsters</strong><span>The journey asks what loyalty, identity, leadership, and home really mean.</span></div></div>
+          </div>
+        </aside>
+      </section>
+
+      <section id="journey">
+        <div class="section-heading">
+          <h2>Follow the voyage</h2>
+          <p>Choose a stop to read it in depth. Every completed stop adds to your progress.</p>
+        </div>
+        <div class="journey">
+          <nav class="stops" id="stops" aria-label="Journey chapters"></nav>
+          <article class="lesson" id="lesson" aria-live="polite"></article>
+        </div>
+      </section>
+
+      <section class="timeline" id="timeline">
+        <div class="section-heading" style="margin:0;">
+          <h2>Myth, memory, and history</h2>
+          <p>Odysseus is a legendary figure, but his story grew from a real Bronze Age Greek world and a long tradition of song.</p>
+        </div>
+        <div class="timeline-grid">
+          <div class="era"><span>c. 1600–1100 BCE</span><h4>Mycenaean Greece</h4><p>Palaces, trade networks, and warrior kingdoms flourish in the Aegean. This era may preserve memories behind the Trojan War tradition.</p></div>
+          <div class="era"><span>c. 1200 BCE</span><h4>Troy traditions</h4><p>Archaeology confirms a major city at Hisarlik in modern Türkiye, although it cannot prove the events of Homer’s war.</p></div>
+          <div class="era"><span>c. 1100–800 BCE</span><h4>Oral poets</h4><p>Stories of heroes are sung and reshaped across generations. Formulaic phrases help performers remember long tales.</p></div>
+          <div class="era"><span>c. 8th–7th century BCE</span><h4>Homeric epics</h4><p><em>The Iliad</em> and <em>The Odyssey</em> take the form in which they become classics of Greek literature.</p></div>
+          <div class="era"><span>Today</span><h4>Enduring voyage</h4><p>Readers still debate the poem’s ideas about heroism, hospitality, family, survival, and the costs of war.</p></div>
+        </div>
+      </section>
+
+      <section class="quiz-layout" id="quiz">
+        <div class="quiz-card">
+          <div class="eyebrow">Knowledge check</div>
+          <h2>Can you navigate the tale?</h2>
+          <div class="auth-gate" id="auth-gate">
+            <p>Sign in with your school email to save one private response. No other student can view your answers.</p>
+            <form class="auth-form" id="auth-form">
+              <label class="field-label" for="login-email" style="position:absolute; width:1px; height:1px; overflow:hidden;">Email address</label>
+              <input class="text-input" id="login-email" type="email" autocomplete="email" placeholder="you@school.edu" required />
+              <button class="primary-btn" type="submit">Send sign-in link</button>
+            </form>
+            <p class="feedback" id="auth-message" aria-live="polite"></p>
+          </div>
+          <div class="quiz-form" id="quiz-form" hidden>
+            <div class="question-status" id="question-status"></div>
+            <div class="quiz-question" id="quiz-question"></div>
+            <div class="answers" id="answers"></div>
+            <div class="quiz-controls">
+              <button class="secondary-btn" type="button" id="previous-question">Previous</button>
+              <button class="secondary-btn" type="button" id="next-question">Next question</button>
+            </div>
+            <label class="field-label" for="written-response">In 2–4 sentences, what does “home” mean to Odysseus?</label>
+            <textarea class="text-response" id="written-response" minlength="10" maxlength="2000" placeholder="Write your response here..." required></textarea>
+            <p class="private-note">This written response is private to you and your teacher.</p>
+            <button class="primary-btn" type="button" id="submit-quiz">Submit private quiz</button>
+            <p class="feedback" id="submission-message" aria-live="polite"></p>
+          </div>
+          <div class="result-card" id="quiz-result" hidden aria-live="polite"></div>
+        </div>
+        <aside class="study-card">
+          <div class="eyebrow">Reading lens</div>
+          <h2>Ask better questions</h2>
+          <ul class="study-list">
+            <li><span class="dot"></span><span><b>Whose story is this?</b> Notice whose voices are heard, and whose are not.</span></li>
+            <li><span class="dot"></span><span><b>What makes a hero?</b> Compare strength, intelligence, restraint, and responsibility.</span></li>
+            <li><span class="dot"></span><span><b>What is hospitality?</b> The Greek value of <em>xenia</em>—care for guests and hosts—shapes many scenes.</span></li>
+            <li><span class="dot"></span><span><b>What does “home” mean?</b> Ithaca is a place, but it is also family, identity, and belonging.</span></li>
+          </ul>
+        </aside>
+      </section>
+      <footer>Built for learning: myths are cultural stories, and the historical timeline reflects what scholars can infer rather than what the poem proves.</footer>
+    </main>
+
+    <script>
+      const chapters = [
+        {
+          title: "A world before the poem",
+          place: "Bronze Age Aegean",
+          text: "Odysseus belongs to the heroic age of Greek myth. The poem was composed centuries after the era it imagines, mixing memories of Mycenaean palace culture with the values and objects of Homer’s own time.",
+          idea: "History and myth overlap here: archaeology can illuminate the setting, but it cannot verify every legendary event or person.",
+          tags: ["Mycenae", "Troy", "oral tradition"]
+        },
+        {
+          title: "The strategist at Troy",
+          place: "The Trojan War",
+          text: "Before the voyage begins, Greek legends place Odysseus among the leaders who fought at Troy. He is famous not only for courage but for mêtis: practical intelligence, clever planning, and the ability to adapt.",
+          idea: "The Trojan Horse is part of the wider Trojan War tradition. It is not narrated directly in The Odyssey, but the poem refers to it as a remembered feat.",
+          tags: ["mêtis", "Trojan Horse", "leadership"]
+        },
+        {
+          title: "The first wrong turns",
+          place: "From Troy into danger",
+          text: "After Troy, Odysseus and his crew raid the Cicones, encounter the Lotus-Eaters, and blind the Cyclops Polyphemus. Their escape from the Cyclops shows Odysseus at his cleverest—and his most reckless.",
+          idea: "When Odysseus reveals his true name to Polyphemus, he wins glory but provokes the anger of Poseidon, the Cyclops’ father.",
+          tags: ["Cyclops", "Poseidon", "consequences"]
+        },
+        {
+          title: "Temptation and loss",
+          place: "Islands of the west",
+          text: "The crew faces Aeolus’ winds, the giant Laestrygonians, the enchantress Circe, and the Underworld. Each encounter tests whether they can listen, plan, and resist immediate desires.",
+          idea: "The voyage is not simply a list of monsters. It repeatedly examines decision-making, group responsibility, and the fallout of poor choices.",
+          tags: ["Circe", "Underworld", "choices"]
+        },
+        {
+          title: "Past the Sirens",
+          place: "The hardest passage",
+          text: "Odysseus orders his crew to bind him to the mast so he can hear the Sirens’ song without steering toward them. Later, the crew loses the last ship after breaking a warning not to harm the cattle of the sun god.",
+          idea: "Odysseus survives because he plans for his own weakness. His crew’s final disaster reminds readers that knowledge matters only when people act on it.",
+          tags: ["Sirens", "Scylla", "self-control"]
+        },
+        {
+          title: "Ithaca and recognition",
+          place: "Home at last",
+          text: "After years with Calypso and help from the Phaeacians, Odysseus reaches Ithaca in disguise. His return reunites him with Telemachus, Penelope, and his household—but only after a violent conflict with the suitors.",
+          idea: "The ending asks difficult questions: Can home be restored after war? What does justice look like? Who gets to recognize the true Odysseus?",
+          tags: ["Penelope", "Telemachus", "identity"]
+        }
+      ];
+
+      const quizQuestions = [
+        { question: "What quality is Odysseus especially known for?", answers: ["Superhuman strength", "Clever, adaptable intelligence", "The ability to see the future"] },
+        { question: "Why is Poseidon hostile to Odysseus?", answers: ["Odysseus blinds Poseidon’s son, Polyphemus", "Odysseus steals Poseidon’s trident", "Odysseus refuses to sail"] },
+        { question: "What does xenia refer to in ancient Greek culture?", answers: ["A naval battle formation", "Guest-friendship and hospitality", "A type of epic poem"] },
+        { question: "Which statement best describes Homer’s Odyssey?", answers: ["A historical record written during the Trojan War", "An epic poem shaped by oral storytelling traditions", "A modern retelling of Greek religion"] }
+      ];
+
+      const config = window.ODYSSEY_CONFIG ?? {};
+      const isConfigured = Boolean(
+        config.supabaseUrl &&
+        config.supabasePublishableKey &&
+        !config.supabaseUrl.includes("YOUR_PROJECT") &&
+        !config.supabasePublishableKey.includes("YOUR_PUBLISHABLE")
+      );
+      const supabaseClient = isConfigured
+        ? window.supabase.createClient(config.supabaseUrl, config.supabasePublishableKey)
+        : null;
+      const state = {
+        active: 0,
+        visited: new Set(),
+        quizIndex: 0,
+        answers: Array(quizQuestions.length).fill(null),
+        submitted: false
+      };
+      const stops = document.getElementById("stops");
+      const lesson = document.getElementById("lesson");
+      const progressBar = document.getElementById("progress-bar");
+      const progressLabel = document.getElementById("progress-label");
+      const authGate = document.getElementById("auth-gate");
+      const authForm = document.getElementById("auth-form");
+      const authMessage = document.getElementById("auth-message");
+      const quizForm = document.getElementById("quiz-form");
+      const quizResult = document.getElementById("quiz-result");
+      const submissionMessage = document.getElementById("submission-message");
+
+      function renderJourney() {
+        stops.innerHTML = chapters.map((chapter, index) => `
+          <button class="stop ${index === state.active ? "active" : ""} ${state.visited.has(index) ? "done" : ""}" data-index="${index}">
+            <span class="stop-num">${state.visited.has(index) ? "✓" : index + 1}</span>
+            <span class="stop-label">${chapter.title}</span>
+          </button>`).join("");
+        stops.querySelectorAll(".stop").forEach(button => button.addEventListener("click", () => selectChapter(Number(button.dataset.index))));
+        const count = state.visited.size;
+        progressBar.style.width = `${(count / chapters.length) * 100}%`;
+        progressLabel.textContent = `${count} of ${chapters.length} chapters explored`;
+      }
+
+      function selectChapter(index) {
+        state.active = index;
+        state.visited.add(index);
+        const chapter = chapters[index];
+        lesson.innerHTML = `
+          <div class="lesson-content">
+            <div class="chapter-line">Stop ${index + 1} · ${chapter.place}</div>
+            <h3>${chapter.title}</h3>
+            <p>${chapter.text}</p>
+            <div class="key-idea"><strong>Key idea:</strong> ${chapter.idea}</div>
+            <div class="lesson-tags">${chapter.tags.map(tag => `<span class="tag">${tag}</span>`).join("")}</div>
+            <div class="lesson-footer">
+              <button class="primary-btn" id="next-chapter">${index === chapters.length - 1 ? "Finish the journey" : "Continue onward"}</button>
+              <span class="lesson-counter">Chapter ${index + 1} of ${chapters.length}</span>
+            </div>
+          </div>`;
+        document.getElementById("next-chapter").addEventListener("click", () => {
+          if (index < chapters.length - 1) selectChapter(index + 1);
+          else lesson.querySelector(".key-idea").innerHTML = "<strong>Journey complete.</strong> You have reached Ithaca. Revisit any chapter or test yourself below.";
+        });
+        renderJourney();
+      }
+
+      function renderQuiz() {
+        const item = quizQuestions[state.quizIndex];
+        const selectedAnswer = state.answers[state.quizIndex];
+        document.getElementById("question-status").textContent = `Question ${state.quizIndex + 1} of ${quizQuestions.length}`;
+        document.getElementById("quiz-question").textContent = item.question;
+        document.getElementById("answers").innerHTML = item.answers.map((answer, index) =>
+          `<button class="answer ${selectedAnswer === index ? "selected" : ""}" type="button" data-answer="${index}">${String.fromCharCode(65 + index)}. ${answer}</button>`).join("");
+        document.getElementById("previous-question").disabled = state.quizIndex === 0;
+        document.getElementById("next-question").textContent =
+          state.quizIndex === quizQuestions.length - 1 ? "Review answers" : "Next question";
+        document.querySelectorAll(".answer").forEach(button => {
+          button.addEventListener("click", () => {
+            state.answers[state.quizIndex] = Number(button.dataset.answer);
+            renderQuiz();
+          });
+        });
+      }
+
+      function showResult(attempt) {
+        authGate.hidden = true;
+        quizForm.hidden = true;
+        quizResult.hidden = false;
+        quizResult.innerHTML = `<strong>Your result: ${attempt.score} of ${attempt.total_questions}</strong>
+          <p>Your private response was securely recorded on ${new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(attempt.submitted_at))}.</p>`;
+      }
+
+      async function loadExistingAttempt() {
+        const { data, error } = await supabaseClient
+          .from("quiz_attempts")
+          .select("score,total_questions,submitted_at")
+          .eq("quiz_version", "odyssey-v1")
+          .maybeSingle();
+        if (error) throw error;
+        if (data) {
+          state.submitted = true;
+          showResult(data);
+        }
+      }
+
+      async function setAuthenticatedUser(user) {
+        if (!user) {
+          authGate.hidden = false;
+          quizForm.hidden = true;
+          quizResult.hidden = true;
+          return;
+        }
+        authMessage.textContent = `Signed in as ${user.email}.`;
+        authGate.hidden = true;
+        quizForm.hidden = false;
+        try {
+          await loadExistingAttempt();
+        } catch (error) {
+          submissionMessage.textContent = `Unable to load your saved result: ${error.message}`;
+        }
+      }
+
+      async function initializeAuthentication() {
+        if (!isConfigured) {
+          authMessage.textContent = "This quiz needs its Supabase connection before students can sign in. See README.md.";
+          return;
+        }
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        if (error) {
+          authMessage.textContent = `Unable to check sign-in status: ${error.message}`;
+          return;
+        }
+        await setAuthenticatedUser(session?.user ?? null);
+        supabaseClient.auth.onAuthStateChange((_event, sessionChange) => {
+          setAuthenticatedUser(sessionChange?.user ?? null);
+        });
+      }
+
+      authForm.addEventListener("submit", async event => {
+        event.preventDefault();
+        if (!isConfigured) return;
+        const email = document.getElementById("login-email").value.trim();
+        authMessage.textContent = "Sending your sign-in link…";
+        const { error } = await supabaseClient.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: `${window.location.origin}${window.location.pathname}` }
+        });
+        authMessage.textContent = error
+          ? `Could not send the sign-in link: ${error.message}`
+          : "Check your email for a sign-in link, then return here to begin.";
+      });
+
+      document.getElementById("previous-question").addEventListener("click", () => {
+        state.quizIndex = Math.max(0, state.quizIndex - 1);
+        renderQuiz();
+      });
+      document.getElementById("next-question").addEventListener("click", () => {
+        state.quizIndex = Math.min(quizQuestions.length - 1, state.quizIndex + 1);
+        renderQuiz();
+      });
+      document.getElementById("submit-quiz").addEventListener("click", async () => {
+        if (!state.answers.every(Number.isInteger)) {
+          submissionMessage.textContent = "Please answer all four multiple-choice questions before submitting.";
+          return;
+        }
+        const writtenResponse = document.getElementById("written-response").value.trim();
+        if (writtenResponse.length < 10) {
+          submissionMessage.textContent = "Please write at least 10 characters for the written response.";
+          return;
+        }
+        const submitButton = document.getElementById("submit-quiz");
+        submitButton.disabled = true;
+        submissionMessage.textContent = "Submitting your private response…";
+        const { data, error } = await supabaseClient.functions.invoke("submit-quiz", {
+          body: { answers: state.answers, writtenResponse }
+        });
+        submitButton.disabled = false;
+        if (error) {
+          submissionMessage.textContent = `Could not submit your quiz: ${error.message}`;
+          return;
+        }
+        state.submitted = true;
+        showResult(data);
+      });
+      document.getElementById("start-journey").addEventListener("click", () => {
+        document.getElementById("journey").scrollIntoView({ behavior: "smooth" });
+        selectChapter(0);
+      });
+      document.getElementById("theme-toggle").addEventListener("click", () => {
+        const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        document.documentElement.dataset.theme = next;
+      });
+
+      selectChapter(0);
+      renderQuiz();
+      initializeAuthentication();
+    </script>
+  </body>
+</html>
